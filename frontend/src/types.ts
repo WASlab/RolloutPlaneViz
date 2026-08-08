@@ -72,3 +72,42 @@ export interface Dashboard {
   bundles: string[]
 }
 
+export interface Estimate {
+  metric: string
+  unit: string
+  baseline_mean: number
+  candidate_mean: number
+  absolute_delta: number
+  relative_delta: number | null
+  confidence_low: number
+  confidence_high: number
+  sample_count_baseline: number
+  sample_count_candidate: number
+}
+
+export interface Comparison {
+  run_id: string
+  baseline_bundle: string
+  candidate_bundle: string
+  estimates: Estimate[]
+  series: Series[]
+}
+
+export interface ReportRequest {
+  run_id: string
+  baseline_bundle: string | null
+  candidate_bundle: string | null
+  range_start_percent: number
+  range_end_percent: number
+  sections: string[]
+}
+
+export interface ReportReceipt {
+  report_id: string
+  created_at_ns: number
+  source_generated_at_ns: number
+  data_digest: string
+  request: ReportRequest
+  metric_count: number
+  rollout_count: number
+}

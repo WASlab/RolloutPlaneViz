@@ -7,7 +7,7 @@ import {
   VisualMapComponent,
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
+import { SVGRenderer } from 'echarts/renderers'
 import { useEffect, useRef } from 'react'
 
 echarts.use([
@@ -17,7 +17,7 @@ echarts.use([
   TooltipComponent,
   DataZoomComponent,
   VisualMapComponent,
-  CanvasRenderer,
+  SVGRenderer,
 ])
 
 interface Props {
@@ -32,7 +32,7 @@ export function EChart({ option, className = '', onRangeChange }: Props) {
 
   useEffect(() => {
     if (!element.current) return
-    chart.current = echarts.init(element.current, undefined, { renderer: 'canvas' })
+    chart.current = echarts.init(element.current, undefined, { renderer: 'svg' })
     const observer = new ResizeObserver(() => chart.current?.resize())
     observer.observe(element.current)
     return () => {

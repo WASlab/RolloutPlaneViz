@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from typing import Self
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class Model(BaseModel):
@@ -85,3 +87,51 @@ class Dashboard(Model):
     tasks: list[TaskResult]
     rollouts: list[RolloutRow]
     bundles: list[str]
+
+
+class Estimate(Model):
+    metric: str
+    unit: str
+    baseline_mean: float
+    candidate_mean: float
+    absolute_delta: float
+    relative_delta: float | None
+    confidence_low: float
+    confidence_high: float
+    sample_count_baseline: int
+    sample_count_candidate: int
+
+
+class Comparison(Model):
+    run_id: str
+    baseline_bundle: str
+    candidate_bundle: str
+    estimates: list[Estimate]
+    series: list[Series]
+
+
+class ReportRequest(Model):
+    run_id: str
+    baseline_bundle: str | None = None
+    candidate_bundle: str | None = None
+    range_start_percent: float = Field(default=0, ge=0, le=100)
+    range_end_percent: float = Field(default=100, ge=0, le=100)
+    sections: list[str] = Field(
+        default_factory=lambda: ["overview", "learning", "inference", "tasks", "rollouts"]
+    )
+
+    @model_validator(mode="after")
+    def ordered_range(self) -> Self:
+        if self.range_start_percent >= self.range_end_percent:
+            raise ValueError("report range must have positive width")
+        return self
+
+
+class ReportReceipt(Model):
+    report_id: str
+    created_at_ns: int
+    source_generated_at_ns: int
+    data_digest: str
+    request: ReportRequest
+    metric_count: int
+    rollout_count: int

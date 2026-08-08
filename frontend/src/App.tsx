@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 import { BreakdownChart, TaskChart, ThroughputChart, TimelineChart } from './components/Charts'
+import { CompareWorkspace } from './components/CompareWorkspace'
+import { ReportsWorkspace } from './components/ReportsWorkspace'
 import { api } from './lib/api'
 import type { KPI, RolloutRow } from './types'
 
@@ -17,6 +19,7 @@ function delta(kpi: KPI) {
 }
 
 export default function App() {
+  const [mode, setMode] = useState<'observe' | 'compare' | 'reports'>('observe')
   const runs = useQuery({ queryKey: ['runs'], queryFn: api.runs })
   const [selectedRun, setSelectedRun] = useState<string | null>(null)
   const runId = selectedRun ?? runs.data?.[0]?.run_id
@@ -38,9 +41,9 @@ export default function App() {
       <aside className="rail">
         <div className="brand"><span className="brand-mark">RP</span><span>viz</span></div>
         <nav>
-          <button className="active">Observe</button>
-          <button disabled>Compare</button>
-          <button disabled>Reports</button>
+          <button className={mode === 'observe' ? 'active' : ''} onClick={() => setMode('observe')}>Observe</button>
+          <button className={mode === 'compare' ? 'active' : ''} onClick={() => setMode('compare')}>Compare</button>
+          <button className={mode === 'reports' ? 'active' : ''} onClick={() => setMode('reports')}>Reports</button>
         </nav>
         <div className="rail-foot"><i className="live-dot" /> live<br /><small>15s refresh</small></div>
       </aside>
@@ -58,7 +61,7 @@ export default function App() {
           </div>
         </header>
 
-        <section className="kpis" aria-label="Selected KPIs">
+        {mode === 'observe' && <div className="mode-enter"><section className="kpis" aria-label="Selected KPIs">
           {data.kpis.map(kpi => <div className="kpi" key={kpi.label}><span>{kpi.label}</span><strong>{displayKpi(kpi)}</strong><em className={kpi.direction}>{delta(kpi)}</em></div>)}
         </section>
 
@@ -82,7 +85,9 @@ export default function App() {
         <section className="rollout-section">
           <div className="panel-title"><div><p>Evidence ledger</p><h2>Recent rollouts</h2></div><span>Select a row to inspect its trace</span></div>
           <div className="table-wrap"><table><thead><tr><th>Rollout</th><th>Task</th><th>Bundle</th><th>Reward</th><th>Wall-clock</th><th>Turns</th><th>Stop reason</th></tr></thead><tbody>{data.rollouts.map(row => <RolloutRowView key={row.rollout_id} row={row} onClick={() => setSelectedRollout(row.rollout_id)} />)}</tbody></table></div>
-        </section>
+        </section></div>}
+        {mode === 'compare' && <CompareWorkspace data={data} />}
+        {mode === 'reports' && <ReportsWorkspace data={data} range={range} />}
       </main>
 
       <div className={`scrim ${selectedRollout ? 'visible' : ''}`} onClick={() => setSelectedRollout(null)} />

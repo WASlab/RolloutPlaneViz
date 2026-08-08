@@ -11,5 +11,6 @@ frontend/vite.config.js
 frontend/vite.config.d.ts
 .playwright-cli/
 output/
+.rolloutplane-viz/
 dist/
 *.egg-info/

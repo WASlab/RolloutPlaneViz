@@ -4,6 +4,22 @@ A read-only research visualization surface for RolloutPlane. It turns rollout,
 reward, wall-clock, speculative-decoding, and termination evidence into linked,
 publication-quality operational views without adding work to the training path.
 
+## 0.2 capabilities
+
+- Observe a live or deterministic demonstration run through linked performance,
+  curriculum, termination, and rollout-trace views.
+- Compare two rollout bundles using metric means, absolute and relative changes,
+  sample counts, and independent normal-approximation 95% confidence intervals.
+- Freeze a selected evidence range into an immutable report receipt backed by a
+  canonical SHA-256 digest.
+- Export the receipt's metric evidence as CSV or print the report with vector SVG
+  charts.
+- Downsample large series with a min/max bucket strategy that preserves endpoints
+  and local spikes while keeping browser rendering bounded.
+
+Comparison intervals are exploratory evidence, not a substitute for seed-aware
+or paired statistical analysis when samples are autocorrelated.
+
 ## Boundary
 
 The dashboard polls a separate FastAPI gateway. The gateway queries RolloutPlane
@@ -39,3 +55,6 @@ The backend serves `frontend/dist` automatically when it exists.
 
 Set `ROLLOUTPLANE_TARGET=host:50051` to use a live control plane. With no target,
 the UI uses a seeded demonstration run designed to exercise every visualization.
+
+Immutable report snapshots are written to `.rolloutplane-viz/reports` by default.
+Set `ROLLOUTPLANE_VIZ_REPORT_DIR` to place them on durable storage in production.

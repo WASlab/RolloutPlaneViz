@@ -35,6 +35,26 @@ class DataSource(ABC):
     async def trace(self, rollout_id: str) -> RolloutTrace | None: ...
 
 
+def downsample(points: list[Point], limit: int = 2_000) -> list[Point]:
+    """Min/max bucket downsampling that preserves spikes and endpoints."""
+    if limit < 4:
+        raise ValueError("limit must be at least 4")
+    if len(points) <= limit:
+        return points
+    interior = points[1:-1]
+    bucket_count = max(1, (limit - 2) // 2)
+    bucket_size = max(1, math.ceil(len(interior) / bucket_count))
+    selected = [points[0]]
+    for start in range(0, len(interior), bucket_size):
+        bucket = interior[start : start + bucket_size]
+        minimum = min(bucket, key=lambda point: point.value)
+        maximum = max(bucket, key=lambda point: point.value)
+        extrema = [minimum] if minimum == maximum else [minimum, maximum]
+        selected.extend(sorted(extrema, key=lambda point: point.timestamp_ns))
+    selected.append(points[-1])
+    return selected[: limit - 1] + [points[-1]] if len(selected) > limit else selected
+
+
 class DemoSource(DataSource):
     """Seeded, realistic data for development and visual regression tests."""
 
@@ -315,7 +335,9 @@ class LiveSource(DataSource):
             units[record.metric.name] = record.metric.unit
         series = [
             Series(
-                name=name, unit=unit, points=sorted(points, key=lambda point: point.timestamp_ns)
+                name=name,
+                unit=unit,
+                points=downsample(sorted(points, key=lambda point: point.timestamp_ns)),
             )
             for (name, unit), points in sorted(grouped.items())
         ]
