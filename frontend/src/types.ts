@@ -6,10 +6,32 @@ export interface RunSummary {
   environment: string
   started_at_ns: number
   current_bundle: string
+  algorithm: string | null
+  finished_at_ns: number | null
+  current_checkpoint: string | null
+}
+
+export interface BundleSummary {
+  bundle_id: string
+  target: string
+  tokenizer: string
+  engine: string
+  speculator: string | null
+  policy_step: number | null
+  target_digest: string | null
+  tokenizer_digest: string | null
+  engine_digest: string | null
+  speculator_digest: string | null
+  sampling: Record<string, unknown>
+  environment_contract: string | null
+  reward_contract: string | null
+  created_at_ns: number | null
+  labels: Record<string, string>
 }
 
 export interface Point {
   timestamp_ns: number
+  timestamp_ms: number
   value: number
   bundle_id: string
 }
@@ -42,12 +64,18 @@ export interface TaskResult {
 export interface RolloutRow {
   rollout_id: string
   task: string
+  task_family: string
   bundle_id: string
   reward: number
   duration_seconds: number
   turns: number
   status: string
   termination_reason: string
+  started_at_ns: number
+  ended_at_ns: number
+  worker_id: string | null
+  attempt: number
+  decision_chunk: number
 }
 
 export interface TraceEvent {
@@ -70,6 +98,20 @@ export interface Dashboard {
   tasks: TaskResult[]
   rollouts: RolloutRow[]
   bundles: string[]
+  bundle_details: BundleSummary[]
+}
+
+export type ComparisonMethod = 'normal_independent' | 'moving_block_bootstrap'
+
+export interface ComparisonRequest {
+  run_id: string
+  baseline_bundle: string
+  candidate_bundle: string
+  method: ComparisonMethod
+  confidence_level: number
+  resamples: number
+  block_length: number | null
+  metric_names: string[]
 }
 
 export interface Estimate {
@@ -83,14 +125,26 @@ export interface Estimate {
   confidence_high: number
   sample_count_baseline: number
   sample_count_candidate: number
+  standard_error: number | null
+  standardized_effect: number | null
+  probability_candidate_greater: number | null
+  block_length: number | null
 }
 
 export interface Comparison {
   run_id: string
   baseline_bundle: string
   candidate_bundle: string
+  method: ComparisonMethod
+  confidence_level: number
+  resamples: number | null
+  generated_at_ns: number
+  source_generated_at_ns: number
+  data_digest: string
+  request: ComparisonRequest
   estimates: Estimate[]
   series: Series[]
+  bundle_details: BundleSummary[]
 }
 
 export interface ReportRequest {
@@ -99,6 +153,8 @@ export interface ReportRequest {
   candidate_bundle: string | null
   range_start_percent: number
   range_end_percent: number
+  range_start_ns?: number | null
+  range_end_ns?: number | null
   sections: string[]
 }
 
@@ -110,4 +166,36 @@ export interface ReportReceipt {
   request: ReportRequest
   metric_count: number
   rollout_count: number
+  task_count: number
+  range_start_ns: number
+  range_end_ns: number
+  source_kind: string
+}
+
+export interface ReportDocument { receipt: ReportReceipt; dashboard: Dashboard }
+
+export interface ReportVerification {
+  report_id: string
+  verified: boolean
+  expected_digest: string
+  actual_digest: string
+  verified_at_ns: number
+}
+
+export interface RolloutPage {
+  items: RolloutRow[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface ServiceMetadata {
+  application: string
+  version: string
+  api_version: string
+  source_kind: string
+  refresh_seconds: number
+  max_series_points: number
+  report_store: string
+  features: string[]
 }

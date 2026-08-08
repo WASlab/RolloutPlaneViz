@@ -15,10 +15,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: RolloutPlaneViz
-      - uses: actions/checkout@v6
-        with:
-          repository: WASLab/RolloutPlane
-          path: RolloutPlane
       - uses: astral-sh/setup-uv@v8
         with:
           python-version: ${{ matrix.python-version }}
@@ -26,9 +22,13 @@ jobs:
         working-directory: RolloutPlaneViz/backend
       - run: uv run ruff check .
         working-directory: RolloutPlaneViz/backend
+      - run: uv run ruff format --check .
+        working-directory: RolloutPlaneViz/backend
       - run: uv run mypy --no-incremental
         working-directory: RolloutPlaneViz/backend
       - run: uv run pytest
+        working-directory: RolloutPlaneViz/backend
+      - run: uv build
         working-directory: RolloutPlaneViz/backend
 
   frontend:

@@ -1,8 +1,11 @@
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
 import {
+  AriaComponent,
+  AxisPointerComponent,
   DataZoomComponent,
   GridComponent,
+  LegendComponent,
   TooltipComponent,
   VisualMapComponent,
 } from 'echarts/components'
@@ -14,25 +17,33 @@ echarts.use([
   BarChart,
   LineChart,
   GridComponent,
+  LegendComponent,
   TooltipComponent,
+  AxisPointerComponent,
   DataZoomComponent,
   VisualMapComponent,
+  AriaComponent,
   SVGRenderer,
 ])
 
 interface Props {
   option: EChartsOption
   className?: string
+  group?: string
   onRangeChange?: (range: [number, number]) => void
 }
 
-export function EChart({ option, className = '', onRangeChange }: Props) {
+export function EChart({ option, className = '', group, onRangeChange }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const chart = useRef<ReturnType<typeof echarts.init> | null>(null)
 
   useEffect(() => {
     if (!element.current) return
     chart.current = echarts.init(element.current, undefined, { renderer: 'svg' })
+    if (group) {
+      chart.current.group = group
+      echarts.connect(group)
+    }
     const observer = new ResizeObserver(() => chart.current?.resize())
     observer.observe(element.current)
     return () => {
@@ -40,7 +51,7 @@ export function EChart({ option, className = '', onRangeChange }: Props) {
       chart.current?.dispose()
       chart.current = null
     }
-  }, [])
+  }, [group])
 
   useEffect(() => {
     chart.current?.setOption(option, { notMerge: true, lazyUpdate: true })
@@ -60,5 +71,5 @@ export function EChart({ option, className = '', onRangeChange }: Props) {
     }
   }, [onRangeChange])
 
-  return <div ref={element} className={`chart ${className}`} />
+  return <div ref={element} className={`chart ${className}`} role="img" />
 }
